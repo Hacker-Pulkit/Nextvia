@@ -1,0 +1,56 @@
+from collections import defaultdict, deque
+
+def calculate_earliest_and_latest_completion(tasks, dependencies):
+    adj_list = defaultdict(list)
+    in_degree = defaultdict(int)
+    durations = {}
+    for task, (duration, est, lft) in tasks.items():
+        durations[task] = duration
+        in_degree[task] = 0
+
+    for t1, t2 in dependencies:
+        adj_list[t1].append(t2)
+        in_degree[t2] += 1
+
+    zero_in_degree = deque([task for task in tasks if in_degree[task] == 0])
+
+    earliest_finish_time = {}
+    latest_finish_time = {}
+
+    for task in tasks:
+        earliest_finish_time[task] = 0
+        latest_finish_time[task] = float('inf')
+
+    while zero_in_degree:
+        task = zero_in_degree.popleft()
+        eft = earliest_finish_time[task] + durations[task]
+        for neighbor in adj_list[task]:
+            in_degree[neighbor] -= 1
+            if in_degree[neighbor] == 0:
+                zero_in_degree.append(neighbor)
+            earliest_finish_time[neighbor] = max(earliest_finish_time[neighbor], eft)
+
+    sorted_tasks = sorted(earliest_finish_time.keys(), key=lambda x: earliest_finish_time[x], reverse=True)
+    for task in sorted_tasks:
+        lft = latest_finish_time[task] - durations[task]
+        for neighbor in adj_list[task]:
+            latest_finish_time[task] = min(latest_finish_time[task], latest_finish_time[neighbor] - durations[task])
+    
+    earliest_time = max(earliest_finish_time.values())
+    latest_time = min(latest_finish_time.values())
+
+    return earliest_time, latest_time
+
+tasks = {
+    'A': (3, 0, 0),
+    'B': (2, 0, 0),
+    'C': (4, 0, 0)
+}
+dependencies = [
+    ('A', 'B'),
+    ('B', 'C')
+]
+
+earliest_time, latest_time = calculate_earliest_and_latest_completion(tasks, dependencies)
+print("Earliest Completion Time:", earliest_time)
+print("Latest Completion Time:", latest_time)
