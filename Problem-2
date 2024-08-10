@@ -1,0 +1,33 @@
+from collections import deque, defaultdict
+
+def find_common_friends(friends_dict, person1, person2):
+    set1 = set(friends_dict.get(person1, []))
+    set2 = set(friends_dict.get(person2, []))
+    return set1.intersection(set2)
+
+def find_connection_level(friends_dict, start, end):
+    if start == end:
+        return 0
+
+    visited = set()
+    queue = deque([(start, 0)])  # (current_person, connection_level)
+    visited.add(start)
+
+    while queue:
+        current, level = queue.popleft()
+        for friend in friends_dict.get(current, []):
+            if friend not in visited:
+                if friend == end:
+                    return level + 1
+                visited.add(friend)
+                queue.append((friend, level + 1))
+    return -1
+
+friends_dict = {
+    'Alice': ['Bob'],
+    'Bob': ['Janice'],
+    'Janice': []
+}
+
+print("Common friends of Alice and Bob:", find_common_friends(friends_dict, 'Alice', 'Bob'))
+print("Connection level between Alice and Janice:", find_connection_level(friends_dict, 'Alice', 'Janice'))
